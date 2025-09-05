@@ -15,6 +15,10 @@ import '../features/events/data/repositories/events_repository_impl.dart';
 import '../features/events/domain/entities/event.dart';
 import '../features/events/domain/repositories/events_repository.dart';
 import '../features/events/presentation/provider/event_notifier.dart';
+import '../photos/data/sources/photos_api.dart';
+import '../photos/data/repositories/photos_repository_impl.dart';
+import '../photos/domain/entities/photo.dart';
+import '../photos/domain/repositories/photos_repository.dart';
 
 final useMockApiProvider = Provider<bool>((ref) => true);
 
@@ -64,3 +68,50 @@ final albumsNotifierProvider = StateNotifierProvider.family<AlbumsNotifier, Asyn
     return AlbumsNotifier(repository: repo, eventId: eventId);
   },
 );
+
+///PHOTO
+final photosApiProvider = Provider<PhotosApiBase>((ref) {
+  final useMock = ref.watch(useMockApiProvider);
+  if (useMock) {
+    return PhotosApiMock();
+  } else {
+    final dioClient = ref.watch(dioClientProvider);
+    return PhotosApi(dioClient: dioClient);
+  }
+});
+
+final photosRepositoryProvider = Provider<PhotosRepository>((ref) {
+  final api = ref.watch(photosApiProvider);
+  return PhotosRepositoryImpl(photosApi: api);
+});
+
+final photosByAlbumProvider = FutureProvider.family<List<Photo>, String>((ref, albumId) async {
+  final repository = ref.watch(photosRepositoryProvider);
+  return await repository.getPhotosByAlbumId(albumId);
+});
+
+// Stateful provider to manage photo like status
+final photoLikeStateProvider = StateNotifierProvider<PhotoLikeStateNotifier, Map<String, bool>>((ref) {
+  return PhotoLikeStateNotifier();
+});
+
+class PhotoLikeStateNotifier extends StateNotifier<Map<String, bool>> {
+  PhotoLikeStateNotifier() : super({});
+
+  void toggleLike(String photoId, bool currentStatus) {
+    // Optimistically update the UI
+    state = {...state, photoId: !currentStatus};
+  }
+
+  void setInitialLikes(List<Photo> photos) {
+    final likes = <String, bool>{};
+    for (final photo in photos) {
+      likes[photo.id] = photo.liked;
+    }
+    state = likes;
+  }
+
+  bool isLiked(String photoId) {
+    return state[photoId] ?? false;
+  }
+}

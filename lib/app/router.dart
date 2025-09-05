@@ -4,6 +4,7 @@ import 'package:mini_event_album_app/features/events/presentation/screen/event_s
 
 import '../features/albums/presentation/albums_screen.dart';
 import '../features/auth/presentation/auth_screen.dart';
+import '../photos/presentation/photo_screen.dart';
 
 final routeProvider = Provider<GoRouter>((ref) {
   return GoRouter(routes: [
@@ -17,6 +18,14 @@ final routeProvider = Provider<GoRouter>((ref) {
       builder: (context, state) {
         final eventId = state.pathParameters['eventId']!;
         return AlbumScreen(eventId: eventId);
+      },
+    ),
+    GoRoute(
+      path: '/events/:eventId/albums/:albumId/photos',
+      builder: (context, state) {
+        final eventId = state.pathParameters['eventId']!;
+        final albumId = state.pathParameters['albumId']!;
+        return PhotoScreen(eventId: eventId, albumId: albumId);
       },
     ),
   ]);

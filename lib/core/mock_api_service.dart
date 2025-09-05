@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import '../features/albums/domain/entities/album.dart';
 import '../features/events/domain/entities/event.dart';
-import '../features/photos/domain/entities/photo.dart';
+import '../photos/domain/entities/photo.dart';
 
 class MockApiService {
   //simulate network delay

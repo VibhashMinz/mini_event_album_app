@@ -44,7 +44,7 @@ class EventCard extends StatelessWidget {
               // Dark overlay for readability
               Positioned.fill(
                 child: Container(
-                  color: Colors.black.withOpacity(0.25),
+                  color: Colors.black.withValues(alpha: 0.25),
                 ),
               ),
 

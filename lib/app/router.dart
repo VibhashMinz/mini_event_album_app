@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mini_event_album_app/features/events/presentation/screen/event_screen.dart';
 
+import '../features/albums/presentation/albums_screen.dart';
 import '../features/auth/presentation/auth_screen.dart';
 
 final routeProvider = Provider<GoRouter>((ref) {
@@ -10,6 +11,13 @@ final routeProvider = Provider<GoRouter>((ref) {
     GoRoute(
       path: '/events',
       builder: (context, state) => const EventsScreen(),
-    )
+    ),
+    GoRoute(
+      path: '/events/:eventId/albums',
+      builder: (context, state) {
+        final eventId = state.pathParameters['eventId']!;
+        return AlbumScreen(eventId: eventId);
+      },
+    ),
   ]);
 });

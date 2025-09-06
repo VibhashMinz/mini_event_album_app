@@ -19,6 +19,7 @@ import '../photos/data/sources/photos_api.dart';
 import '../photos/data/repositories/photos_repository_impl.dart';
 import '../photos/domain/entities/photo.dart';
 import '../photos/domain/repositories/photos_repository.dart';
+import '../photos/presentation/photo_notifier.dart';
 
 final useMockApiProvider = Provider<bool>((ref) => false);
 
@@ -89,37 +90,3 @@ final photosByAlbumProvider = StateNotifierProvider.family<PhotosNotifier, Async
   final repo = ref.watch(photosRepositoryProvider);
   return PhotosNotifier(repository: repo, albumId: albumId);
 });
-
-class PhotosNotifier extends StateNotifier<AsyncValue<List<Photo>>> {
-  PhotosNotifier({required this.repository, required this.albumId}) : super(const AsyncLoading()) {
-    _loadPhotos();
-  }
-
-  final PhotosRepository repository;
-  final String albumId;
-
-  Future<void> _loadPhotos() async {
-    try {
-      final photos = await repository.getPhotosByAlbumId(albumId);
-      state = AsyncData(photos);
-    } catch (e, st) {
-      state = AsyncError(e, st);
-    }
-  }
-
-  Future<void> updatePhotoLike(String photoId, bool liked) async {
-    final current = state.value ?? [];
-    // Optimistic update
-    final updated = current.map((p) => p.id == photoId ? p.copyWith(liked: liked) : p).toList();
-    state = AsyncData(updated);
-
-    try {
-      await repository.togglePhotoLike(photoId, liked);
-    } catch (e) {
-      // revert if API fails
-      state = AsyncData(
-        current,
-      );
-    }
-  }
-}

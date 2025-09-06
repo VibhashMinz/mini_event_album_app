@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:dio/dio.dart';
 
 import '../../../core/api_exceptions.dart';
@@ -30,7 +32,13 @@ class PhotosApi implements PhotosApiBase {
   @override
   Future<List<Photo>> getPhotosByAlbumId(String albumId) async {
     try {
-      final response = await _dio.get('/albums/$albumId/photos');
+      final response = await _dio.get(
+        '/photos',
+        queryParameters: {
+          'albumId': albumId,
+        },
+      );
+
       final data = response.data as List;
       return data.map((e) => Photo.fromJson(e)).toList();
     } catch (e) {
@@ -41,8 +49,8 @@ class PhotosApi implements PhotosApiBase {
   @override
   Future<void> togglePhotoLike(String photoId, bool liked) async {
     try {
-      await _dio.post(
-        '/photos/$photoId/like',
+      await _dio.patch(
+        '/photos/$photoId',
         data: {'liked': liked},
       );
     } catch (e) {

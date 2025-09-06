@@ -26,9 +26,15 @@ class PhotoScreen extends ConsumerWidget {
         centerTitle: true,
       ),
       child: photosAsync.when(
-        data: (photos) => _PhotosDetailView(photos: photos, ref: ref),
+        data: (photos) => _PhotosDetailView(
+          photos: photos,
+          albumId: albumId,
+        ),
         loading: () => const Center(
-          child: CircularProgressIndicator(color: Color(0xFFFFD700), strokeWidth: 3),
+          child: CircularProgressIndicator(
+            color: Color(0xFFFFD700),
+            strokeWidth: 3,
+          ),
         ),
         error: (error, stack) => Center(child: Text('Error: $error')),
       ),
@@ -37,10 +43,10 @@ class PhotoScreen extends ConsumerWidget {
 }
 
 class _PhotosDetailView extends ConsumerStatefulWidget {
-  const _PhotosDetailView({required this.photos, required this.ref});
+  const _PhotosDetailView({required this.photos, required this.albumId});
 
   final List<Photo> photos;
-  final WidgetRef ref;
+  final String albumId;
 
   @override
   ConsumerState<_PhotosDetailView> createState() => _PhotosDetailViewState();
@@ -54,10 +60,6 @@ class _PhotosDetailViewState extends ConsumerState<_PhotosDetailView> {
   void initState() {
     super.initState();
     _pageController = PageController();
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(photoLikeStateProvider.notifier).setInitialLikes(widget.photos);
-    });
   }
 
   @override
@@ -103,7 +105,6 @@ class _PhotosDetailViewState extends ConsumerState<_PhotosDetailView> {
                 _currentPhotoIndex = index;
               });
             },
-            ref: ref,
           ),
         ),
 
@@ -112,7 +113,7 @@ class _PhotosDetailViewState extends ConsumerState<_PhotosDetailView> {
           padding: const EdgeInsets.symmetric(vertical: 16),
           child: _LikeButton(
             photo: widget.photos[_currentPhotoIndex],
-            ref: ref,
+            albumId: widget.albumId,
           ),
         ),
 
@@ -177,14 +178,12 @@ class _SwipeablePhotoViewer extends StatelessWidget {
     required this.pageController,
     required this.currentIndex,
     required this.onPageChanged,
-    required this.ref,
   });
 
   final List<Photo> photos;
   final PageController pageController;
   final int currentIndex;
   final Function(int) onPageChanged;
-  final WidgetRef ref;
 
   @override
   Widget build(BuildContext context) {
@@ -235,15 +234,15 @@ class _LargePhotoDisplay extends StatelessWidget {
 }
 
 class _LikeButton extends ConsumerWidget {
-  const _LikeButton({required this.photo, required this.ref});
+  const _LikeButton({required this.photo, required this.albumId});
 
   final Photo photo;
-  final WidgetRef ref;
+  final String albumId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final likeState = ref.watch(photoLikeStateProvider);
-    final isLiked = likeState[photo.id] ?? photo.liked;
+    final photosState = ref.watch(photosByAlbumProvider(albumId));
+    final isLiked = photosState.value?.firstWhere((p) => p.id == photo.id).liked ?? photo.liked;
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 250),
@@ -251,7 +250,7 @@ class _LikeButton extends ConsumerWidget {
       width: 60,
       height: 60,
       decoration: BoxDecoration(
-        color: Colors.black, // always black background
+        color: Colors.black,
         shape: BoxShape.circle,
         border: Border.all(
           color: isLiked ? Colors.amber : Colors.grey.shade500,
@@ -282,16 +281,7 @@ class _LikeButton extends ConsumerWidget {
     );
   }
 
-  void _toggleLike(WidgetRef ref, bool currentStatus) async {
-    // Optimistic UI update
-    ref.read(photoLikeStateProvider.notifier).toggleLike(photo.id, currentStatus);
-
-    try {
-      final photosRepository = ref.read(photosRepositoryProvider);
-      await photosRepository.togglePhotoLike(photo.id, !currentStatus);
-    } catch (e) {
-      // revert if failed
-      ref.read(photoLikeStateProvider.notifier).toggleLike(photo.id, !currentStatus);
-    }
+  void _toggleLike(WidgetRef ref, bool currentStatus) {
+    ref.read(photosByAlbumProvider(albumId).notifier).updatePhotoLike(photo.id, !currentStatus);
   }
 }

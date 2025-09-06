@@ -20,9 +20,9 @@ import '../photos/data/repositories/photos_repository_impl.dart';
 import '../photos/domain/entities/photo.dart';
 import '../photos/domain/repositories/photos_repository.dart';
 
-final useMockApiProvider = Provider<bool>((ref) => true);
+final useMockApiProvider = Provider<bool>((ref) => false);
 
-final dioClientProvider = Provider((ref) => DioClient(baseUrl: "https://api.example.com"));
+final dioClientProvider = Provider((ref) => DioClient(baseUrl: "https://68bb6fa684055bce63f1ec49.mockapi.io"));
 
 final eventsApiProvider = Provider<EventsApiBase>((ref) {
   final useMock = ref.watch(useMockApiProvider);
@@ -85,33 +85,41 @@ final photosRepositoryProvider = Provider<PhotosRepository>((ref) {
   return PhotosRepositoryImpl(photosApi: api);
 });
 
-final photosByAlbumProvider = FutureProvider.family<List<Photo>, String>((ref, albumId) async {
-  final repository = ref.watch(photosRepositoryProvider);
-  return await repository.getPhotosByAlbumId(albumId);
+final photosByAlbumProvider = StateNotifierProvider.family<PhotosNotifier, AsyncValue<List<Photo>>, String>((ref, albumId) {
+  final repo = ref.watch(photosRepositoryProvider);
+  return PhotosNotifier(repository: repo, albumId: albumId);
 });
 
-// Stateful provider to manage photo like status
-final photoLikeStateProvider = StateNotifierProvider<PhotoLikeStateNotifier, Map<String, bool>>((ref) {
-  return PhotoLikeStateNotifier();
-});
-
-class PhotoLikeStateNotifier extends StateNotifier<Map<String, bool>> {
-  PhotoLikeStateNotifier() : super({});
-
-  void toggleLike(String photoId, bool currentStatus) {
-    // Optimistically update the UI
-    state = {...state, photoId: !currentStatus};
+class PhotosNotifier extends StateNotifier<AsyncValue<List<Photo>>> {
+  PhotosNotifier({required this.repository, required this.albumId}) : super(const AsyncLoading()) {
+    _loadPhotos();
   }
 
-  void setInitialLikes(List<Photo> photos) {
-    final likes = <String, bool>{};
-    for (final photo in photos) {
-      likes[photo.id] = photo.liked;
+  final PhotosRepository repository;
+  final String albumId;
+
+  Future<void> _loadPhotos() async {
+    try {
+      final photos = await repository.getPhotosByAlbumId(albumId);
+      state = AsyncData(photos);
+    } catch (e, st) {
+      state = AsyncError(e, st);
     }
-    state = likes;
   }
 
-  bool isLiked(String photoId) {
-    return state[photoId] ?? false;
+  Future<void> updatePhotoLike(String photoId, bool liked) async {
+    final current = state.value ?? [];
+    // Optimistic update
+    final updated = current.map((p) => p.id == photoId ? p.copyWith(liked: liked) : p).toList();
+    state = AsyncData(updated);
+
+    try {
+      await repository.togglePhotoLike(photoId, liked);
+    } catch (e) {
+      // revert if API fails
+      state = AsyncData(
+        current,
+      );
+    }
   }
 }

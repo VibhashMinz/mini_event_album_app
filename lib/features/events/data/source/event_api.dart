@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:dio/dio.dart';
 import 'package:mini_event_album_app/core/dio_client.dart';
 
@@ -18,6 +20,7 @@ class EventsApi implements EventsApiBase {
         queryParameters: {'page': page, 'limit': limit},
       );
       final List<dynamic> data = response.data;
+      //  log('Response: $data');
       return data.map((json) => Event.fromJson(json)).toList();
     } on DioException catch (e) {
       throw ApiException.fromDio(e);

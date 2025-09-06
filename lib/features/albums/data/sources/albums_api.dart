@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:mini_event_album_app/core/dio_client.dart';
 
 import '../../../../core/api_exceptions.dart';
@@ -17,12 +19,22 @@ class AlbumsApi implements AlbumsApiBase {
   }) async {
     try {
       final response = await _dioClient.dio.get(
-        '/events/$eventId/albums',
-        queryParameters: {'_page': page, '_limit': limit},
+        '/events/$eventId',
       );
 
-      final data = response.data as List;
-      return data.map((e) => Album.fromJson(e)).toList();
+      final json = response.data as Map<String, dynamic>;
+      final albums = (json['albums'] as List<dynamic>? ?? [])
+          .map((e) => Album.fromJson({
+                ...e as Map<String, dynamic>,
+                'eventId': eventId, // inject eventId manually
+              }))
+          .toList();
+
+      // Apply manual pagination since MockAPI doesn’t do nested paging
+      final start = (page - 1) * limit;
+      final end = (start + limit).clamp(0, albums.length);
+      //  log('albums: $albums');
+      return albums.sublist(start, end);
     } catch (e) {
       throw ApiException.fromDio(e);
     }

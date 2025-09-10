@@ -4,7 +4,7 @@ import 'package:mini_event_album_app/features/events/presentation/screen/event_s
 
 import '../features/albums/presentation/albums_screen.dart';
 import '../features/auth/presentation/auth_screen.dart';
-import '../photos/presentation/photo_screen.dart';
+import '../features/photos/presentation/photo_screen.dart';
 
 final routeProvider = Provider<GoRouter>((ref) {
   return GoRouter(routes: [

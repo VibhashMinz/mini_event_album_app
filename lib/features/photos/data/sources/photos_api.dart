@@ -2,9 +2,9 @@ import 'dart:developer';
 
 import 'package:dio/dio.dart';
 
-import '../../../core/api_exceptions.dart';
-import '../../../core/dio_client.dart';
-import '../../../core/mock_api_service.dart';
+import '../../../../core/api_exceptions.dart';
+import '../../../../core/dio_client.dart';
+import '../../../../core/mock_api_service.dart';
 import '../../domain/entities/photo.dart';
 
 abstract class PhotosApiBase {

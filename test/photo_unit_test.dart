@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mini_event_album_app/photos/domain/entities/photo.dart';
-import 'package:mini_event_album_app/photos/domain/repositories/photos_repository.dart';
-import 'package:mini_event_album_app/photos/presentation/photo_notifier.dart';
+import 'package:mini_event_album_app/features/photos/domain/entities/photo.dart';
+import 'package:mini_event_album_app/features/photos/domain/repositories/photos_repository.dart';
+import 'package:mini_event_album_app/features/photos/presentation/photo_notifier.dart';
 import 'package:mocktail/mocktail.dart';
 
 class MockPhotosRepository extends Mock implements PhotosRepository {}

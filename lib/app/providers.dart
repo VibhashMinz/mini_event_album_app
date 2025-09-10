@@ -15,11 +15,11 @@ import '../features/events/data/repositories/events_repository_impl.dart';
 import '../features/events/domain/entities/event.dart';
 import '../features/events/domain/repositories/events_repository.dart';
 import '../features/events/presentation/provider/event_notifier.dart';
-import '../photos/data/sources/photos_api.dart';
-import '../photos/data/repositories/photos_repository_impl.dart';
-import '../photos/domain/entities/photo.dart';
-import '../photos/domain/repositories/photos_repository.dart';
-import '../photos/presentation/photo_notifier.dart';
+import '../features/photos/data/sources/photos_api.dart';
+import '../features/photos/data/repositories/photos_repository_impl.dart';
+import '../features/photos/domain/entities/photo.dart';
+import '../features/photos/domain/repositories/photos_repository.dart';
+import '../features/photos/presentation/photo_notifier.dart';
 
 final useMockApiProvider = Provider<bool>((ref) => false);
 
